@@ -1,0 +1,91 @@
+DESC EMP;
+
+DESC DEPT;
+SELECT * FROM DEPT;
+
+DESC SALGRADE;
+SELECT * FROM SALGRADE;
+
+SELECT EMPNO, DEPTNO
+
+FROM EMP;
+
+SELECT DISTINCT JOB, DEPTNO
+FROM EMP;
+
+SELECT ENAME, SAL*4 AS FOUR_SAL, COMM
+FROM EMP;
+
+--연봉(커미션 포함)을 구해주세요 YEAR_SAL COMM에 
+--NULL 이 있다면 다 NULL로 뜸
+SELECT ENAME, SAL, SAL*12+COMM AS YEAR_SAL
+FROM EMP;
+
+--오름차순으로 정렬(디폴트, 기본값)
+-- 오름차순 디폴트인데 하려면 명시하려면 ASC
+SELECT *
+FROM EMP
+ORDER BY SAL;
+
+--사원 번호를 기준으로 오름차순이 되도록 코드를 써줘
+SELECT *
+FROM EMP
+ORDER BY EMPNO;
+
+--월급의 내림차순 정렬 하고싶어
+SELECT *
+FROM EMP
+ORDER BY SAL DESC;
+
+--사원번호 기준으로 내림차순
+SELECT *
+FROM EMP
+ORDER BY EMPNO DESC;
+
+--월급은 오름차순, 사원번호는 내림차순 
+SELECT *
+FROM EMP
+ORDER BY SAL, DEPTNO DESC;
+
+--사원이름, 연봉(커미션(보너스) 제외, 부서번호를 사원이름순으로 정렬
+SELECT ENAME, SAL*12 AS YEAR_SAL, DEPTNO
+FROM EMP
+ORDER BY  ENAME;
+
+SELECT DISTINCT JOB FROM EMP;
+
+--WHERE 사용
+SELECT * 
+FROM EMP
+WHERE DEPTNO = 10
+ORDER BY ENAME; 
+
+--사원 번호가 7782인 사원 정보만 나오도록 코드를 채워라
+SELECT *
+FROM EMP
+WHERE EMPNO = 7782;
+
+--AND, OR 연산자
+SELECT *
+FROM EMP
+WHERE DEPTNO = 30
+    AND JOB = 'SALESMAN';
+    
+SELECT *
+FROM EMP
+WHERE DEPTNO = 30
+    OR JOB = 'CLERK';
+    
+--SQL문의 결과로 사원 번호가 7499이고 부서 번호가 30인
+--사원 정보만 나오도록 코드를 채워보세요
+SELECT *
+FROM EMP
+WHERE EMPNO = 7499 
+    AND DEPTNO = 30;
+    
+--SQL문의 결과로 부서원 번호가 20이거나 직업이 SALESMAN인
+--사원 정보만 나오도록 코드를 채워보세요
+SELECT *
+FROM EMP
+WHERE DEPTNO = 20 
+OR JOB = 'SALESMAN';
