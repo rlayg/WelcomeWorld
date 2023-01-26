@@ -1,0 +1,624 @@
+
+
+--전날 복습 연습
+SELECT * FROM EMP;
+
+--EMPNOMGR 새로운 칼럼 만들어라 이름은 "EMPNOMGR"
+--출력되는건 73697902
+
+SELECT EMPNO || MGR
+FROM EMP;
+
+SELECT CONCAT(EMPNO, MGR) 
+FROM EMP; 
+--위 2개 출력 같음
+
+--문자열 '2023-01-20' 을 data형으로 바구어 보아라
+SELECT TO_DATE('2023-01-20','YYYY-MM-DD')
+FROM DUAL;
+
+--COMM이 NULL은 0으로 출력
+SELECT NVL(COMM,0)
+FROM EMP;
+
+--YEAR_SAL 을 계산 SAL*12 + COMM NULL이 없도록
+SELECT ENAME, NVL2(COMM, SAL*12+COMM, SAL*12) AS YEAR_SAL
+FROM EMP;
+
+--EMP에서 사원의 수, 급여의 총합, 최대급여를 구해봐
+SELECT COUNT(*), SUM(SAL), MAX(SAL)
+FROM EMP;
+--최대급여를 받는 사람의 이름은?
+SELECT ENAME
+FROM EMP
+WHERE SAL = (SELECT MAX(SAL)
+            FROM EMP);
+
+--부서별 최대급여를 받는 사람의 이름은?
+SELECT ENAME, DEPTNO 
+FROM EMP 
+WHERE SAL IN (SELECT MAX(SAL) 
+             FROM EMP 
+             GROUP BY DEPTNO); 
+
+
+SELECT ENAME , SAL
+FROM EMP
+WHERE (SAL,DEPTNO)  IN(SELECT MAX(SAL),DEPTNO
+                  FROM EMP
+                  GROUP BY DEPTNO);
+
+--COMM을받지 못한 사람 이름은?
+SELECT ENAME
+FROM EMP
+WHERE COMM IS NULL;
+
+--부서번호가 30번인 부서의 평균급여는? 소수점 2째자리
+SELECT ROUND(AVG(SAL),2)
+FROM EMP
+WHERE DEPTNO = 30;
+
+--부서별 부서의 평균급여는?(소수2째자리까지 표시)
+SELECT DEPTNO, ROUND(AVG(SAL),2)
+FROM EMP
+GROUP BY DEPTNO;
+
+--SAL가 4000이하인 사람들에 대하여 
+--부서별 부서의 평균급여는?(소수2째자리까지 표시)
+
+SELECT DEPTNO, ROUND(AVG(SAL),2)
+FROM EMP
+WHERE SAL <= 4000
+GROUP BY DEPTNO;
+
+--SAL가 4000이하인 사람들에 대하여 
+--(부서평균이 2000이상인 부서)
+--부서별 부서의 평균급여는?(소수2째자리까지 표시)
+SELECT DEPTNO, ROUND(AVG(SAL)) AS DEPT_SAL
+FROM EMP 
+WHERE SAL <= 4000 
+GROUP BY DEPTNO 
+HAVING AVG(SAL) >= 2000; 
+
+--EMP 와 DEPT를 JOIN 해주세요(이너조인)
+SELECT *
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO;
+
+--사원의 번호, 이름, 부서이름, 근무지를 출력
+SELECT E.EMPNO, E.ENAME, D.DNAME, D.LOC
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO;
+
+--급여등급 1~5인 칼럼을 표현(SAL, GRADE 포함): 비등가조인
+SELECT E.EMPNO, E.ENAME, E.SAL, S.GRADE 
+FROM EMP E, SALGRADE S 
+WHERE E.SAL BETWEEN S.LOSAL AND S.HISAL;
+
+--사원번호, 사원이름, 매니저이름 을 조회
+SELECT E.EMPNO, E.ENAME, E1.ENAME
+FROM EMP E, EMP E1
+WHERE E.MGR = E1.EMPNO;
+
+SELECT *
+FROM EMP;
+
+
+--수업 시작
+--데이터 정의어 DDL
+/*
+객체를 생성, 변경, 삭제하는 데이터 정의어
+데이터 정의어를 사용할 때 유의점
+
+--테이블을 생성하는 CREATE
+CREATE TABLE 소유,계정, 테이블 이름(
+    열1 이름 열1 자료형,
+    열2 이름 열2 자료형,
+    ...
+    열N 이름 열N 자료형
+);
+*/
+/*자료형을 각각 정의하여 새 테이블 생성하기
+CREATE TABLE EMP_DDEL(
+    EMPNO NUMBER(4),
+    ENAME VARCHAR2(10),
+    JOB VARCHAR2(9),
+    MGR NUMBER(4),
+    HIREDATE DATE,
+    SAL NUMBER(7,2),
+    COMM NUMBER(7,2),
+    DEPTNO NUMBER(2)
+);
+
+DESC DEPT_DDL;
+*/
+
+--EMP에서 EMP2를 만들어 봅시다. 복제
+SELECT * FROM TAB;
+DROP TABLE EMP_TEMP;
+
+CREATE TABLE EMP2
+AS SELECT * FROM EMP;
+SELECT * FROM EMP2;
+
+DROP TABLE EMP2;
+
+--EMP에서 비어있는 EMP2를 만들어봐
+CREATE TABLE EMP2 
+AS SELECT * FROM EMP 
+WHERE 1 <> 1; 
+
+DROP TABLE EMP2;
+
+SELECT * FROM EMP2;
+
+--테이블을 변경하는 ALTER
+--EMP 테이블을 복사하여 EMP_ALTER테이블 생성
+CREATE TABLE EMP_ALTER
+AS SELECT * 
+FROM EMP;
+
+SELECT * FROM EMP_ALTER;
+
+--테이블에 열 추가하는 ADD
+--LATER 명령어로 HP 열 추가하기
+ALTER TABLE EMP_ALTER
+ADD HP VARCHAR2(20);
+
+SELECT * FROM EMP_ALTER;
+
+--열 이름을 변경하는 RENAME
+-- ALTER 명령어로 HP 열 이름을 TEL로 변경
+ALTER TABLE EMP_ALTER
+RENAME COLUMN HP TO TEL;
+
+SELECT * FROM EMP_ALTER;
+
+--열 자료형을 변경하는 MODIFY
+--사원들이 많아져서 4자리 이상의 사원번호가 필요해질 경우
+--ALTER 명령어로 EMPNO 열 길이 변경하기
+ALTER TABLE EMP_ALTER
+MODIFY EMPNO NUMBER(5);
+
+DESC EMP_ALTER;
+
+--테이블 이름을 변경하는 RENAME
+--테이블 이름 변경하기
+RENAME EMP_ALTER TO EMP_RENAME;
+
+--테이블의 데이터를 삭제하는 TRUNCATE
+TRUNCATE TABLE EMP_RENAME;
+
+SELECT * FROM EMP_RENAME;
+
+--열을 삭제할 때 사용하는 DROP 
+--ALTER 명령어로 TEL 열 삭제하기
+
+DROP TABLE EMP_RENAME;
+
+--조심해서 써야댐
+
+--다음 열 구조를 가진 EMP_HW 테이블
+CREATE TABLE EMP_HW(
+    EMPNO NUMBER(4),
+    ENAME VARCHAR2(10),
+    JOB VARCHAR2(9),
+    MGR NUMBER(4),
+    HIREDATE DATE,
+    SAL NUMBER(7,2),
+    COMM NUMBER(7,2),
+    DEPTNO NUMBER(2)
+);
+
+SELECT * FROM EMP_HW;
+
+DROP TABLE EMP_HW;
+
+
+
+
+/*
+1.객체 종류
+데이터베이스를 위한 데이터를 저장한 사전
+더 빠른 검색을 위한 인덱스
+테이블처럼 사용하는 뷰
+규칙에 따라 순번을 생성하는 시퀀스
+공식 별칭을 지정하는 동의어
+2.
+3.
+막 넘겨서 못적음
+*/
+
+--SCOTT 계정에서 사용 가능한 데이터 사전 살펴보기(DICT 사용_
+SELECT * FROM DICT;
+--DICT를 DICTIONARY 해도 똑같음
+
+--SCOTT 계정이 가지고 있는 객체 정보 살펴보기 (USER_접두어 사용)
+SELECT TABLE_NAME
+FROM USER_TABLES;
+-- 근데 이건 보통 관리자가 쓰고 밑사람은 밑에거 많이 쓴데
+SELECT * FROM TAB;
+
+--스콧 계정이 사용할 수 있는 객체 정보 살펴보기(ALL_접두어_
+SELECT OWNER
+FROM ALL_TABLES;
+
+
+--스콧 계정으로 DBA_ 접두어 사용
+SELECT * FROM DBA_TABLES; 
+--스콧은 DBA가 아니라서 오류남
+--시스템 계정으로 DBA_ 접두어 사용
+SELECT * FROM DBA_TABLES; 
+--시스템으로 들어가래
+
+--더 빠른 검색을 위한 인덱스
+/*
+인덱스란
+색인이라는 뜻, 책 내용을 찾는것과 마찬가지로 오라클 데이터베이스에서도
+데이터 검색 성능의 향상을 위해 테이블 열에 사용하는 객체를 뜻 함
+테이블에 보관된 특정 열 데이터의 주소, 즉 위치 정보를 만들어놓은것
+인덱스는 테이블 열을 여러 가지 분석을 통해 선정하여 설정할 수 있다
+*/
+
+--스콧이 소유한 인덱스 정보 알아보기
+SELECT * FROM USER_INDEXES;
+
+/*
+인덱스 생성
+CREATE INDEX 인덱스 이름
+    ON 테이블 이름(열 이름1 ASC or DESC 
+                 열 이름2 ASC or DESC
+                 .....);
+*/
+
+--CREATE INDEX IDX_EMP_SAL;
+
+/*
+테이블처럼 사용하는 뷰
+뷰란?
+흔히 가상 테이블로 부르는 뷰는 하나 이상의 테이블을 조회하는
+SELECT문을 저장한 객체를 뜻함
+SELECT문을 저장하기 때문에 물리적 데이터를 띠로 저장하지 않는다
+따라서 뷰를 SELECT문의 FROM절에 사용하면 특정 테이블을 조회하는
+것과 같은 효과를 얻을 수 있따
+사용 목적
+편리성: SELECT문의 복잡도를 완화하기 위해
+보안성: 테이블의 특정 열을 노출하고 싶지 않을 경우
+*/
+
+--뷰 생성
+--뷰를 생성하기 위해 계정 접속하기
+SQLPLUS SYSTEM/orcl
+GRANT CREATE VIEW TO SCOTT;
+
+--뷰 생성하기(토드)
+CREATE VIEW VW_EMP20
+    AS (SELECT EMPNO, ENAME, JOB, DEPTNO
+        FROM EMP
+        WHERE DEPTNO = 20);
+
+--뷰를 확인하기(토드)
+SELECT *
+FROM USER_VIEWS;
+
+--생성한 뷰 조회하기
+SELECT *
+FROM VW_EMP20;
+
+--드랍
+DROP VIEW VW_EMP20;
+
+--부서 번호가 30인 사원 정보의 모든 열을 출력하는 VM_EMP30ALL 뷰를 작성
+CREATE VIEW VM_EMP30ALL
+AS( SELECT *
+    FROM EMP
+    WHERE DEPTNO = 30);
+
+SELECT *
+FROM USER_VIEWS;
+
+SELECT *
+FROM VM_EMP30ALL;
+
+DROP VIEW VM_EMP30ALL;
+
+
+
+--ROWNUM은 의사(유사과학,의사과학할때의사) 열(PSEUDO COLUMN)이라고 하는 특수
+--ROWNUM을 추가로 조회하는
+SELECT ROWNUM, E.*
+FROM EMP E;
+
+--EMP테이블을 SAL열 기준으로 정렬하기
+SELECT ROWNUM, E.*
+FROM EMP E
+ORDER BY SAL DESC;
+
+--ROWNUM은 데이터를 하나씩 추가할 때 매겨지는 번호이므로
+--ORDER BY절을 통해 정렬해도 유지되는 특성이 있다
+
+--인라인 뷰(서브쿼리 사용)
+SELECT ROWNUM, E.*
+FROM (SELECT *
+        FROM EMP E
+        ORDER BY SAL DESC) E;
+        
+--인라인 뷰로 TOP-N 추출허기 (서브쿼리 사용) WHERE 조건 넣어준다면
+SELECT ROWNUM, E.*
+FROM (SELECT *
+        FROM EMP E
+        ORDER BY SAL DESC) E
+WHERE ROWNUM <= 3;
+
+/*
+순번을 생성하는 시퀀스
+시퀀
+스퀀스는 오라클 데이터베이스에서 특정 규칙에 맞는
+연속 숫자를 생성하는 객체입니다
+
+CREATE SEQUENCE 스퀀스 이름
+[INCREMENT BY N]
+[START WITH N]
+[MAXVALUE N | NOMAXVALUE]
+[MINVALUE N | NOMINVALUE]
+[CYCLE | NOCYCLE]
+[CACHE N | NOCACHE]
+*/
+
+--DEPT_SEQUENCE 테이블 생성하기
+CREATE TABLE DEPT_SEQUENCE
+AS SELECT *
+FROM DEPT
+WHERE 1<>1;
+
+--스퀀스 생성하기
+CREATE SEQUENCE SEQ_DEPT_SEQUENCE
+INCREMENT BY 10
+START WITH 10
+MAXVALUE 90
+MINVALUE 0
+NOCYCLE
+CACHE 2;
+
+
+/*
+시퀀스 사용
+[시퀀스 이름.CURRVAL]과 [시퀀스 이름.NEXTVAL]을 실행
+시퀀스에서 생성한 순번을 사용한 INSERT문ㅅ ㅣㄹ행
+*/
+INSERT INTO DEPT_SEQUENCE (DEPTNO, DNAME, LOC)
+VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'BUSAN');
+
+SELECT * FROM DEPT_SEQUENCE;
+
+
+/*
+시퀀스 수정
+ALTER SEQUENCE 시퀀스 이름
+INCREMENT BY N
+.. 그냥 넘김
+
+
+시퀀스 삭제
+DROP SEQUENCE ...
+*/
+
+/*
+시노님
+공식 별칭을 지정하는 동의어
+동의어(시노님)는 테이블 뷰 시퀀스 등 객체 이름 대신 사용할 수 있는
+다른 이름을 부여하는 객체
+너무 길고 불편할 때 짧고 간단한 이름을 만들어준다
+
+AS 별칭과의 차이
+동의어는 SELECT문의 SELECT절, FROM절에서 사용한 열 또는
+테이블 별칭과 유사 오라클 데이터베이스에 저장되는 객체이기 때문에
+일회성이 아니라는 점에서 차이
+
+CREATE [PUBLIC] SYNONYM 동의어 이름
+FOR [사용자.][객체 이름];
+
+PUBLIC : 퍼블릭으로 생성되어도 본래 객체의 사용 권한이 있어야 사용 가능(선택)
+동의어 이름: 생성할 동의어 이름 - 필수
+사용자 : 생성할 동의어의 본래 객체 소유 사용자를 지정
+        생성할 경우
+객체 이름 : 동의어를 생성
+여기 PPT보고 더 받아 적기
+*/
+
+CREATE SYNONYM E
+FOR EMP;
+
+/*
+근데 권한이 없어 시스템에서 권한 줘
+GRANT CREATE SYNONYM TO SCOTT;
+*/
+CREATE SYNONYM E
+FOR EMP;
+--만들어진다
+
+--E 테이블 전체 내용 조회하기
+SELECT * FROM E;
+
+--동의어 삭제하기
+DROP SYNONYM E;
+
+/*
+제약조건
+제약조건 종류
+NOT NULL 지정한 NULL을 허용하지 않는다 NULL을 제외한 데이터의 
+         중복은 허용
+UNIQUE 지정한 열이 유일한 값을 가져야 한다. 즉 중복될 수 없다.
+        단 NULL은 값의 중복에서 제외된다
+PRIMARY KEY 지정한 열이 유일한 값이라면 NULL을 허용하지 않는다.
+            프라이머리 키는 테이블에 하나만 지정 가능하다
+FOREIGN KEY 다른 테이블의 열을 참조하여 
+            존재하는 값만 입력할 수 있다
+CHECK 설정한 조건식을 만족하는 데이터만 입력 가능하다
+
+데이터 무결성
+이란 데이터베이스에 저장되는 데이터의 정확성과 일관성을 보장
+*/
+
+--빈값을 허락하지 않는 NOT NULL
+--테이블을 생성할 때 NOT NULL 설정하기
+CREATE TABLE TABLE_NOTNULL(
+    LOGIN_ID VARCHAR2(20) NOT NULL,
+    LOGIN_PWD VARCHAR2(20) NOT NULL,
+    TEL      VARCHAR2(20)
+);
+    
+DESC TABLE_NOTNULL;    
+
+DROP TABLE TABLE_NOTNULL;
+/*
+--제약조건이 NOT NULL인 열에 NULL값 넣어보기
+INSERT INTO TABLE_NOTNULL (LOGIN_ID, LOGIN_PWD, TEL)
+VALUES ('TEST_ID_01', NULL, '010-1234-5678');
+
+--제약조건이 없는 TEL열에 NULL 값 입력하기
+INSERT INTO TABLE_NOTNULL (LOGIN_ID, LOGIN_PWD,)
+VALUES ('TEST_ID_01', '1234');
+
+SELECT * FROM TABLE_NOTNULL;
+
+--제약 조건 살펴보기 (SCOTT 
+SELECT OWNER, CONSTRAINT_NAME, CONSTRAINTS, TABLE_
+
+선생 미친놈이라 PPT 지혼자 나가고 디벨로퍼로 PPT가려서 못적음
+
+*/
+
+
+--중복되지 않는 값 UNIQUE
+--제약 조건 지정하기 (테이블 생성할 때)
+CREATE TABLE TABLE_UNIQUE(
+    LOGIN_ID VARCHAR2(20) UNIQUE,
+    LOGIN_PWD VARCHAR2(20) NOT NULL,
+    TEL      VARCHAR2(20)
+);
+
+DESC TABLE_UNIQUE; 
+
+INSERT INTO TABLE_UNIQUE 
+VALUES ('TEST_ID_01', 'PWD', '010');
+
+SELECT * FROM TABLE_UNIQUE;
+
+DROP TABLE TABLE_UNIQUE;
+
+/*
+PRIMARY KEY
+PRIMARY KEY제약조건은 UNIQUE와 NOT NULL 제약 조건의 특성을 모두
+가지는 제약 조건. 즉 데이터 중복을 허용하지 않고 NULL도 허용하지 않는다
+각 행을 식별하는데 활용
+PRIMARY KEY제약조건은 테이블에 하나밖에 지정할 수 없다
+PRIMARY KEY로 지정하면 해당 열에는 자동으로 인덱스가 만들어진다
+*/
+
+--테이블을 생성할 때 특정 열에 PRIMARY KEY 설정하기
+CREATE TABLE TABLE_PK(
+    LOGIN_ID VARCHAR2(20) PRIMARY KEY,
+    LOGIN_PWD VARCHAR2(20) NOT NULL,
+    TEL      VARCHAR2(20)
+);
+
+DESC TABLE_PK; 
+
+INSERT INTO TABLE_PK 
+VALUES ('TEST_ID_01', 'PWD', '010');
+
+SELECT * FROM TABLE_PK;
+
+DROP TABLE TABLE_PK;
+
+/*
+외래키
+관계를 맺는 FOREIGN KEY
+특정 테이블에서 PRIMARY KEY 제약 조건을 지정한 열을 다른 테이블의
+특정 열에서 참조하겠다는 의미로 지정
+
+FOREIGN - 다른 테이블이라는걸 강조하기위해 쓴것같데
+
+참조 관계를 정의하면 EMP테이블의 DPETNO 열에는 DEPT
+테이블의 DEPTNO열에 존재하는 값과 NULL만 저장할 수 있다
+10, 20, 30, 40 그리고 NULL
+
+FOREIGN KEY 지정하기
+CREATE TABLE 테이블 이름(
+...(다른 열 정의),
+열 자료형 CONSTRAINT [제약 조건 이름] REFFERENCES 참조 테이블(참조할 열)
+);
+*/
+
+--EMP_FK 테이블 생성하기
+CREATE TABLE EMP_FK(
+    EMPNO NUMBER(4) PRIMARY KEY,
+    ENAME VARCHAR2(10),
+    DEPTNO NUMBER(2) REFERENCES DEPT_FK(DEPTNO)
+);
+-- REFERENCES DEPT_FK(DEPTNO) 참조할 DEPT_FK(DEPTNO) 가 없다
+
+--DEPT_FK 생성
+CREATE TABLE DEPT_FK(
+    DEPTNO  NUMBER(2)   PRIMARY KEY,
+    DNAME   VARCHAR(14) NOT NULL,
+    LOC     VARCHAR(13) UNIQUE
+);
+
+--EMP_FK 테이블 생성하기
+CREATE TABLE EMP_FK(
+    EMPNO NUMBER(4) PRIMARY KEY,
+    ENAME VARCHAR2(10),
+    DEPTNO NUMBER(2) REFERENCES DEPT_FK(DEPTNO)
+);
+--이제 만들어진다
+SELECT * FROM EMP_FK;
+
+--데이터 삽입
+INSERT INTO EMP_FK 
+VALUES (21, 'SMITH', 10);
+--넣으려면 부모키에 DEPT_FK에 10이 있어야해
+SELECT * FROM DEPT_FK;
+
+INSERT INTO DEPT_FK
+VALUES (10, 'SALES', 'DALLAS');
+INSERT INTO DEPT_FK
+VALUES (20, 'PROGRAMMERS', 'SEOUL');
+
+SELECT * FROM DEPT_FK;
+
+--다시 데이터 삽입
+INSERT INTO EMP_FK 
+VALUES (21, 'SMITH', 10);
+INSERT INTO EMP_FK 
+VALUES (22, 'ALLEN', 10);
+
+SELECT * FROM EMP_FK;
+
+--DEPT_FK 테이블의 10번 부서 데이터 삭제
+DELETE FROM DEPT_FK
+WHERE DEPTNO = 10;
+--무결성 위배되서 삭제 안된다
+
+UPDATE EMP_FK
+SET DEPTNO = 20
+WHERE ENAME = 'SMITH';
+
+UPDATE EMP_FK
+SET DEPTNO = 20
+WHERE ENAME = 'ALLEN';
+
+SELECT * FROM EMP_FK;
+
+DELETE FROM DEPT_FK
+WHERE DEPTNO = 10;
+
+SELECT * FROM DEPT_FK;
+
+/*
+1 현재 삭제하려는 열 값을 참조하는 데이터를 먼저 삭제한다
+2 현재 삭제하려는 열 값
+.... 3까지 있어
+*/
+

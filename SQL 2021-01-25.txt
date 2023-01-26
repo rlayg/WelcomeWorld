@@ -1,0 +1,305 @@
+
+--연습
+SELECT 13*113
+FROM DUAL;
+
+--사원수는 모두 몇명?
+SELECT COUNT(*)
+FROM EMP;
+
+--지금 날짜와 시간은?
+SELECT SYSDATE
+FROM DUAL;
+
+--SYSDATE 이용하여, TO_CHAR로 문자형으로 바꾸면?
+SELECT TO_CHAR(SYSDATE,'YYYY-MM-DD HH24:MI:SS')
+FROM DUAL;
+
+--'2023-01-19' 문자열을 날짜형식으로 바꾸기
+SELECT TO_DATE('2023-01-19', 'YYYY-MM-DD HH24:MI:SS')
+FROM DUAL;
+
+--사원 입사날짜가 1985년 01월 01일 이후인 사원
+SELECT *
+FROM EMP
+WHERE HIREDATE > TO_DATE('1985-01-01', 'YYYY-MM-DD');
+
+--COMM을 포함하여, 이름과 연봉을 조회
+SELECT ENAME, (SAL*12)+NVL(COMM,0) AS SAL_YEAR
+FROM EMP;
+
+--부서별  평균급여는?
+SELECT ROUND(AVG(SAL)), DEPTNO
+FROM EMP
+GROUP BY DEPTNO;
+
+--월급(SAL)이 2000이상에 대하여 부서(DEPTNO)별 평균급여는?
+SELECT DEPTNO, ROUND(AVG(SAL))
+FROM EMP
+WHERE SAL>=2000
+GROUP BY DEPTNO;
+
+--월급(SAL)이 2000이상에 대하여 부서(DEPTNO)별 급여가 3000이상을 조회
+SELECT DEPTNO, ROUND(AVG(SAL))
+FROM EMP
+WHERE SAL>=2000
+GROUP BY DEPTNO
+HAVING AVG(SAL) >= 3000;
+
+--ROLLUP을 사용하여, 부서별, 입사연도별로 사원수, 최고급여, 
+--평균급여를 출력하고 소계와 총계를 출력
+SELECT DEPTNO, TO_CHAR(HIREDATE, 'YYYY'), COUNT(*), MAX(SAL), ROUND(AVG(SAL))
+FROM EMP
+GROUP BY ROLLUP(DEPTNO, TO_CHAR(HIREDATE, 'YYYY'));
+
+--사원번호, 이름, 근무지를 조회
+SELECT E.EMPNO, E.ENAME, D.LOC
+FROM EMP E, DEPT D
+WHERE E.DEPTNO = D.DEPTNO;
+
+
+
+
+--급여와 급여등급 1~5인 칼럼을 표현.(SAL, GRADE 포함)
+SELECT E.SAL, S.GRADE
+FROM EMP E, SALGRADE S
+WHERE E.SAL BETWEEN S.LOSAL AND HISAL;
+
+--사원번호, 사원이름, 매니저이름 을 조회
+SELECT E1.EMPNO, E1.ENAME, E2.ENAME AS MGRNAME 
+FROM EMP E1, EMP E2
+WHERE E1.MGR = E2.EMPNO;
+
+--WHERE E1.MGR = E2.EMPNO(+); 하면 매니저가 있건없건 NULL도 나옴
+
+
+
+--수업시작
+
+/*
+사용자란?
+접속하여 데이터를 관리하는 계정을 사용자(USER)로 표현
+데이터베이스 스키마란?
+데이터베이스에서 데이터 간 관계, 데이터 구조, 제약 조건 등 모든
+객체 데이터베이스 구조의 범위를 스키마라고 한다
+이게 문제인데 이것도 스키마의 정확한 내용이 아님
+이것에만 한정적으로 쓰질 않음
+오라클 데이터베이스에서는 스키마와 사용자를 구별하지 않고 사용하기도 한다
+
+그냥 스키마란?
+데이터베이스 그 자체를 부르는 이름으로 가장 많이 쓰임
+DB = 스키마 = 데이터베이스스키마
+
+그냥 일반적으로 스키마 = DB
+*/
+/*
+사용자 생성
+CREATE USER 사용자 이름(필수)
+IDENTIFIED BY 패스워드(필수)
+ACCOUNT [LOCK/UNLOCK](선택);
+*/
+
+CREATE USER ORCLSTUDY
+IDENTIFIED BY orclstudy;
+
+/*
+system  계정으로 만듦
+그리고 conn으로 연결하려면 안되는데
+session이 없어서 그래 권한 줘야함
+*/
+
+GRANT CREATE SESSION TO ORCLSTUDY;
+
+--사용자 정보 조회
+SELECT *
+FROM ALL_USERS
+WHERE USERNAME = 'ORCLSTUDY';
+
+--사용자의 정보(패스워드 변경하기)
+ALTER USER ORCLSTUDY
+IDENTIFIED BY ORCL;
+
+--새 접속으로 ORCLSTUDY도 접속 해보기
+
+/*
+사용자 삭제하기
+DROP USER ORCLSTUDY;
+
+사용자와 객체 모두 삭제하기
+DROP USER ORCLSTUDY CASCADE;
+*/
+
+/*
+권한 광리
+오라클에서 권한을
+시스템 권한 과 객체 권한 으로 분류
+시스템권한
+데이터베이스 관리 권한이 있는 사용자가 부여할 수 있는 권한
+객체 권한
+특정 사용자가 생성한 테이블 인덱스 뷰 시쿼스 등과 관련된 권한
+
+*/
+--SYSTEM 계정으로 접속하여 사용자(ORCLSTUDY)생성 
+CREATE USER ORCLSTUDY
+IDENTIFIED BY ORACLE;
+
+--사용자 권한 부여하기(SQL*PLUS)
+GRANT RESOURCE, CREATE SESSION, CREATE TABLE TO ORCLSTUDY;
+
+-- 시스템 권한 취소
+--REVOKE
+
+/*
+ORCLSTUDY 사용자에게 TEMP 테이블
+*/
+
+GRANT SELECT, INSERT ON TEMP
+TO ORCLSTUDY;
+
+--ORCLSTUDY거 SCOTT의 DEPT테이블에 (60, 'ORACLE', 'BUSAN')을 삽입해 주세요
+/*
+참고
+
+CONN ORCLSTUDY/ORACLE
+SELECT * FROM SCOTT.TEMP;
+INSERT INT SCOTT.TEMP VALUES(60, 'ORACLE', 'BUSAN');
+SELECT * FROM SCOTT.TEMP;
+*/
+INSERT INTO SCOTT.TEMP VALUES(60, 'ORACLE', 'BUSAN');
+/*
+GRANT SELECT, INSERT ON DEPT TO ORCLSTUDY;
+-- SCOTT
+-- 권한 주기
+
+INSERT INTO SCOTT.DEPT VALUES (60, 'ORACLE', 'BUSAN');
+-- ORCLSTUDY 
+*/
+
+/*
+ROLE 관리
+롤 관리
+롤이란?
+여러 종류의 권한을 묶어 놓은 그룹을 뜻함
+롤을 사용하면 여러 권한을 한번에 부여하고 해제할 수 있으므로
+권한 관리 효율을 높일 수 있다
+
+사전 정의된 롤
+CONNECT 롤 CREATE SESSION
+RESOURCE 롤
+CREATE TRIGGER, CREATE 등 등
+DBA 롤
+*/
+--SYSTEM에서 만들기
+CREATE USER USER_TEMP
+IDENTIFIED BY user_temp;
+
+GRANT CONNECT, RESOURCE TO USER_TEMP;
+
+--삭제
+DROP USER_TEMP;
+
+/*
+사용자 정의 롤
+1 CREATE ROLE 문으로 롤 생성
+2 GRANT 명령어로 생성한 롤에 권한을 포함시킨다
+3 GRANT 명령어로 권한이 포함된 롤을 특정 사용자에게 부여
+4 REVOKE 명령어로 롤을 취소
+*/
+--SYSTEM계정으로 ROLESTUDY 롤 생성 및 권한 부여
+CONN SYSTEM/oracle
+CREATE ROLE ROLESTUDY;
+GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE SYNONYM TO ROLESTUDY;
+
+
+/*
+madang 사용자를 만들어주세요
+madang 애개 권한(롤)을  주세여
+왼쪽 접속화면에 madang을 생성해
+*/
+--SYSTEM 계정에서
+CREATE USER madang 
+IDENTIFIED BY madang;
+
+GRANT CREATE SESSION TO madang; 
+
+GRANT CONNECT, RESOURCE TO madang; 
+
+-- 이후 왼쪽 새접속으로 접속
+
+======================================================
+demo_madang_init.sql
+이 파일 madang에 먹임
+
+--모든 도서의 이름과 출판사명, 가격을 조회합시다
+SELECT BOOKNAME, PUBLISHER, PRICE
+FROM BOOK;
+
+--출판사 이름을 중복제외하고 출력
+SELECT DISTINCT PUBLISHER
+FROM BOOK;
+
+--가격이 20,000원 미만인 도서를 검색
+SELECT BOOKNAME, PRICE
+FROM BOOK
+WHERE PRICE<20000;
+
+--판매된(주문된) 도서의 총판매액은?
+SELECT SUM(SALEPRICE)
+FROM ORDERS;
+
+--2번 고객에게 판매된(주문된) 도서의 총판매액은?
+SELECT SUM(SALEPRICE)
+FROM ORDERS
+WHERE CUSTID = 2;
+
+--김연아 고객에게 판매된(주문된) 도서의 총판매액은?
+SELECT *
+FROM CUSTOMER, ORDERS
+WHERE CUSTOMER.CUSTID = ORDERS.CUSTID;
+
+SELECT SUM(SALEPRICE)
+FROM ORDERS
+WHERE CUSTID = (SELECT CUSTID
+                FROM CUSTOMER
+                WHERE '김연아' = NAME);
+--속도면에서 밑에 조인보다는 위에 서브쿼리가 데이터 덜 먹어서 권장된다
+
+SELECT SUM(SALEPRICE)
+FROM CUSTOMER C, ORDERS O
+WHERE C.CUSTID = O.CUSTID
+    AND C.NAME = '김연아';
+
+--고객별로 주문한 모든 도서의 고객별 총 판매액을 구해라(GRUOP BY)
+SELECT C.NAME, SUM(O.SALEPRICE)
+FROM ORDERS O, CUSTOMER C
+WHERE C.CUSTID = O.CUSTID
+GROUP BY C.NAME;
+
+--고객의 이름과 고객이 주문한 도서명
+SELECT C.NAME, B.BOOKNAME
+FROM BOOK B, CUSTOMER C, ORDERS O
+WHERE C.CUSTID = O.CUSTID
+    AND B.BOOKID = O.BOOKID;
+
+
+
+======================================================
+madang-2023-01-25.sql
+
+
+--madang-2023-01-25 완료 후 여기부터 수업--
+
+--ERD
+/*
+데이터 모델링
+1. 데이터 모델링이란
+2. 개념적 데이터 모델(개체 - 관계 모델)
+3. 논리적 데이터 모델(관계형)
+4. 물리적 데이터 모델링(안중요)
+
+데이터베이스 모델링 개념
+
+PDF 주신다고 함
+
+
+

@@ -1,0 +1,664 @@
+
+--전날 복습
+/*
+SQLPLUS
+SYSTEM 접속
+
+CMD - SQLPLUS - system / orcl 비번은 꼭 대소문자구분- 
+
+접속계정보기 show user - 소유한 테이블 보기 DESC TAB;
+
+scott 접속 CONN SCOTT / tiger - EMP 테이블 살펴보기 DESC EMP;
+
+SELECT * FROM EMP;
+*/
+
+SHOW USER;
+
+--부서번호를 출력
+SELECT DEPTNO
+FROM EMP;
+
+--한번만 출력되게
+SELECT DISTINCT DEPTNO
+FROM EMP;
+
+--부서번호가 30번이고 직책(JOB)이 SALESMAN인 사원들
+SELECT *
+FROM EMP
+WHERE DEPTNO = 30
+    AND JOB = 'SALESMAN';
+
+--급여가 3000이상인 사원에 대하여 사원번호, 이름, 매니저번호
+SELECT EMPNO, ENAME, MGR
+FROM EMP
+WHERE SAL >= 3000;
+
+--이름의 두번째 알파벳이 D인 사원
+SELECT *
+FROM EMP
+WHERE ENAME LIKE '_D%';
+
+--사원번호, 이름, 부서번호가 10이 아닌 사원 
+SELECT EMPNO, ENAME, DEPTNO
+FROM EMP
+WHERE DEPTNO <> 10;
+--차집합 이용
+SELECT EMPNO, ENAME, DEPTNO
+FROM EMP
+MINUS
+SELECT EMPNO, ENAME, DEPTNO
+FROM EMP
+WHERE DEPTNO =10;
+
+--'HELLO'의 LL을 출력 SUBSTR() 사용
+SELECT SUBSTR('HELLO', 3, 2)
+FROM DUAL;
+
+--사원수는 모두 몇명이야
+SELECT COUNT(*)
+FROM EMP;
+
+--월급여(SAL)의 총합은?
+SELECT SUM(SAL)
+FROM EMP;
+
+--월급여(SAL)의 평균은?(소수점 둘째까지)
+SELECT TRUNC(AVG(SAL),2)
+FROM EMP;
+
+--이름, 이름의 길이를 출력
+SELECT ENAME, LENGTH(ENAME)
+FROM EMP;
+
+--이름의 길이가 6 이상인 사원에 대하여
+--이름, 이름의 길이를 출력
+SELECT ENAME, LENGTH(ENAME)
+FROM EMP
+WHERE LENGTH(ENAME)>=6;
+
+--'HELLO'의 'HEKKO'을 출력 REPLACE 사용
+SELECT REPLACE('HELLO', 'LL', 'KK') 
+FROM DUAL;
+SELECT REPLACE('HELLO', 'L', 'K') 
+FROM DUAL; 
+
+--'   HELLO' 을 'HELLO'로 수정
+SELECT LTRIM('   HELLO')
+FROM DUAL; 
+
+--'HELLO'를 'HELLO*****'으로 (RPAD 사용)
+SELECT RPAD('HELLO', 10, '*')
+FROM DUAL;
+
+--지금 날짜와 시간은?
+SELECT SYSDATE 
+FROM DUAL; 
+--위를 문자열로 바꾸고싶어
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') 
+FROM DUAL; 
+
+--'2023-01-19' 문자열을 날짜 형식으로 바꾸기
+SELECT TO_DATE('2023-01-19', 'YYYY-MM-DD') 
+FROM DUAL; 
+
+--사원 입사날짜가 1985-01-01이후인 사원
+SELECT * 
+FROM EMP 
+WHERE HIREDATE > TO_DATE('1985-01-01'); 
+
+/*
+NULL
+이름, COMM에서 NULL이면 0 표시
+*/
+SELECT ENAME, NVL(COMM, 0)
+FROM EMP;
+
+/*
+NULL
+이름, COMM에서 NULL이면 '없음' 표시
+NULL 이 아니면 '있음'표시
+*/
+SELECT ENAME, NVL2(COMM, '있음', '없음')
+FROM EMP;
+
+--열 값에 따라서 출력 값이 달라지는 CASE문
+SELECT EMPNO, ENAME, COMM,
+    CASE
+    WHEN COMM IS NULL THEN '해당사항 없음'
+    WHEN COMM = 0 THEN '수당없음'
+    WHEN COMM > 0 THEN '수당 : ' || COMM
+    END AS COMM_TEXT
+FROM EMP;
+
+/*
+월급(SAL)에 대하여,근무일수는 22일, 하루근무시간은 8시간 
+일당, 시급을 소수점 둘째자리까지 버림하세요 
+*/
+SELECT ENAME, TRUNC(SAL/22, 2) AS DAY_PAY,
+    TRUNC(SAL/22/8,2) AS TIME_PAY
+FROM EMP;
+
+
+
+
+--수업 시작
+/*
+외부조인
+조인 기준 열의 어느 한쪽이 NULL이어도 강제로 출력하는 방식
+왼쪽 외부 조인(LEFT OUTER JOIN)
+WHERE TABLE1.COL1 = TABLE2.COL1(+)
+오른쪽 외부 조인(RIGHT OUTER JOIN)
+WHERE TABLE1.COL1(+) = TABLE2.COL1
+여기서 (+) 기호는 덤으로 덧붙여주는 의미
+*/
+/*
+SQL문 속 또 다른 SQL문, 서브 쿼리
+서브쿼리란?
+서브쿼리는 SQL문을 실행하는 데 필요한 데이터를 추가로 조회하기 위해
+SQL문 내부에서 사용하는 SELECT문을 의미. 서브쿼리의 결과 값을
+사용하여 기능을 수행하는 영역은 메인쿼리라고 부른다
+SUB:아래, 하위
+*/
+
+--사원이름이 JONES 인 사원의 급여 출력
+SELECT ENAME, SAL
+FROM EMP
+WHERE ENAME = 'JONES';
+
+--JONES보다 많이 받는 사원 이름과 급여는?
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > 2975;
+
+SELECT ENAME, SAL 
+FROM EMP 
+WHERE SAL > (SELECT SAL    
+            FROM EMP
+            WHERE ENAME = 'JONES'); 
+
+/*
+서브쿼리의 특징
+1. 괄호()로 묶어서 사용
+2. ORDER BY절을 사용할 수 없다
+3. 메인쿼리의 비교 대상과 같은 자료형과 같은 개수로 지정
+4. 메인쿼리에 사용한 연산자가 단 하나의 데이터로만 연산이
+가능한 연산자라면 서브쿼리의 결과 행 수는 반드시 하나여야 한다
+*/
+
+--서브쿼리를 사용하여 EMP테이블의 사원 정보 중에서 사원의 이름이 ALLEN인
+--사원의 추가 수당보다 많은 추가 수당을 받는 사원의 정보를 구하라
+
+SELECT ENAME, COMM
+FROM EMP
+WHERE COMM > (SELECT COMM
+              FROM EMP
+              WHERE ENAME = 'ALLEN');
+--내 답
+SELECT * 
+FROM EMP
+WHERE COMM > (SELECT COMM
+            FROM EMP
+            WHERE ENAME = 'ALLEN'); 
+-- 다른사람 답
+
+--SCOTT보다 늦게 입사한 사원의 이름과 입사한 날짜는?
+
+SELECT ENAME, HIREDATE
+FROM EMP
+WHERE HIREDATE > (SELECT HIREDATE
+                  FROM EMP
+                  WHERE ENAME = 'SCOTT');
+                  
+--회사의 평균 급여는?
+SELECT AVG(SAL)
+FROM EMP;
+
+SELECT *
+FROM DEPT;
+-- DALLAS 에 근무하는 직원중에서 
+--회사평균급여보다 많이 받는 직원의 이름과 급여
+
+SELECT E.ENAME,E.SAL
+FROM EMP E , DEPT D
+WHERE E.DEPTNO = D.DEPTNO
+AND D.LOC = 'DALLAS'
+AND E.SAL >(SELECT AVG(SAL)
+        FROM EMP) ; 
+
+--IN 연산자 활용
+SELECT *
+FROM EMP
+WHERE DEPTNO IN(20, 30);
+
+--부서 번호 별로 최대 급여 출력
+SELECT MAX(SAL)
+FROM EMP
+GROUP BY DEPTNO;
+
+--부서별 최대 급여 사원은?
+SELECT E.ENAME, E.DEPTNO, E.SAL
+FROM EMP E 
+WHERE E.SAL = (SELECT MAX(SAL) 
+               FROM EMP 
+               GROUP BY DEPTNO 
+               HAVING DEPTNO = E.DEPTNO); 
+
+/*
+ANY, SOME 연산자
+하나라도 TRUE라면 메인쿼리 조건식을 TRUE로 반환해주는 연산자
+*/
+--30번 부서 사원들의 최대 급여보다 적은 급여를 받는 사원 정보
+SELECT *
+FROM EMP
+WHERE SAL < ANY(SELECT SAL
+                FROM EMP
+                WHERE DEPTNO = 30)
+ORDER BY SAL, EMPNO;
+
+--부서 번호가 30인 사원들의 급여
+SELECT SAL
+FROM EMP
+WHERE DEPTNO = 30;
+--바로 위 ANY 괄호 안에 들어간 식
+
+
+--30번 부서 사원들의 최소 급여보다 많은 급여를 받는 사원 정보
+SELECT *
+FROM EMP
+WHERE SAL > ANY (SELECT SAL
+                 FROM EMP
+                 WHERE DEPTNO = 30);
+--ALL 연산자
+--부서 번호가 30번인 사원들의 최소 급여보다 더 적은 급여를 받는 사원
+SELECT *
+FROM EMP
+WHERE SAL < ALL (SELECT SAL
+                 FROM EMP
+                 WHERE DEPTNO = 30);
+
+--EXISTS 연산자
+--EXISTS 는 참거짓이래 더 자세하게는 설명 안함 값이 있으면 참이라는 듯
+--서브쿼리의 결과 값이 존재하는 경우
+SELECT *
+FROM EMP
+WHERE EXISTS (SELECT DNAME
+              FROM DEPT
+              WHERE DEPTNO = 10);
+ --EXISTS서브쿼리안에 값이 하나라도 존재하면 메인쿼리를 출력한다 
+ --원래 ON OFF 넣어서 사용한데
+ 
+ 
+SELECT DNAME 
+FROM DEPT
+WHERE DEPTNO = 10;
+--바로 위 괄호 안에 있는 식           
+              
+--서브쿼리를 이용하여 EMP테이블의 사원 중에 10번 부서에 속한
+--모든 사원들보다 일찍 입사한 사원 정보를 구하도록 코드를 채워라
+SELECT *
+FROM EMP
+WHERE HIREDATE < ALL(SELECT HIREDATE
+                    FROM EMP
+                    WHERE DEPTNO = 10);
+
+--FROM절에 사용하는 서브쿼리 인라인 뷰 
+--인라인 뷰 사용하기
+SELECT E10.EMPNO, E10.ENAME, E10.DEPTNO, D.DNAME, D.LOC
+FROM (SELECT * FROM EMP WHERE DEPTNO = 10) E10,
+     (SELECT * FROM DEPT) D
+WHERE E10.DEPTNO = D.DEPTNO;
+
+--위랑 같은거 
+SELECT E10.EMPNO, E10.ENAME, E10.DEPTNO, D.DNAME, D.LOC
+FROM (SELECT * 
+      FROM EMP 
+      WHERE DEPTNO = 10) E10,
+     (SELECT * 
+      FROM DEPT) D
+WHERE E10.DEPTNO = D.DEPTNO;
+
+--WITH절 사용하기
+WITH
+E10 AS (SELECT * FROM EMP WHERE DEPTNO = 10),
+D   AS  (SELECT * FROM DEPT)
+SELECT E10.EMPNO, E10.ENAME, E10.DEPTNO, D.DNAME, D.LOC
+FROM E10, D
+WHERE E10.DEPTNO = D.DEPTNO;
+
+
+SELECT E10.EMPNO, E10.ENAME, E10.DEPTNO, D.DNAME, D.LOC
+FROM 
+    (SELECT * FROM EMP WHERE DEPTNO = 10) E10,
+    (SELECT * FROM DEPT) D
+WHERE E10.DEPTNO = D.DEPTNO;
+--위 WITH절과 똑같음
+
+--SELECT절에 사용하는 서브쿼리 - 스칼라 서브쿼리
+SELECT EMPNO, ENAME, JOB, SAL,
+       (SELECT GRADE
+        FROM SALGRADE
+        WHERE E.SAL BETWEEN LOSAL AND HISAL) AS SALGRADE, 
+        DEPTNO,
+        (SELECT DNAME
+        FROM DEPT
+        WHERE E.DEPTNO = DEPT.DEPTNO) AS DNAME
+FROM EMP E;
+--SELECT절에 명시하는 서브쿼리는 반드시
+
+/*
+데이터 조작어(DATA MANIPULATION LANGUAGE - DML)
+     데이터 추가 INSERT
+     데이터 수정 UPDATE
+     데이터 삭제 DELETE
+데이터 정의어(DATA DEFINE LANGUAGE - DDL)
+    테이블 생성 CREATE
+    테이블 변경 ALTER
+    테이블 이름 변경 RENAME
+    테이블 데이터 삭제 TRUNCATE
+    테이블을 삭제 DROP
+(DATA CONTRAOL LANGUAGE - DCL)
+    GRANT
+    REVOKE
+트랜잭션 제어(TANSACTION CONTROL LANGUAGE - TCL)    
+    트랜잭션을 제어하는 명령어 COMMIT ROLLBACK 
+*/
+
+/*
+데이터 조작어(DATA MANIPULATION LANGUAGE - DML)
+     데이터 추가 INSERT
+     데이터 수정 UPDATE
+     데이터 삭제 DELETE
+*/
+--DEPT 테이블을 복사해서 DEPT_TEMP 테이블 만들기
+CREATE TABLE DEPT_TEMP
+    AS SELECT * FROM DEPT;
+
+SELECT * FROM DEPT_TEMP;
+--EMP테이블을 복사해서 EMP_TEMP테이블 만들기
+CREATE TABLE EMP_TEMP
+    AS SELECT * 
+        FROM DEPT
+        WHERE 1<>1;
+        
+SELECT * FROM EMP_TEMP;
+/*
+DROP TABLE 테이블이름;
+테이블 삭제
+*/
+--테이블에 데이터를 추가하는 INSERT문
+INSERT INTO DEPT_TEMP(DEPTNO, DNAME, LOC)
+    VALUES(50, 'DATABASE', 'SEOUL');
+    
+SELECT * FROM DEPT_TEMP;
+
+INSERT INTO DEPT_TEMP
+    VALUES(60, 'DATABASE', 'SEOUL');
+--이렇게 해도 되냐?
+SELECT * FROM DEPT_TEMP;
+--된다
+
+INSERT INTO DEPT_TEMP
+    VALUES('DATABASE', 70, 'SEOUL');
+--이렇게 해도 되냐
+--안된다 데이터타입 다르면 안된다
+INSERT INTO DEPT_TEMP
+    VALUES(60, 'DATABASE');
+--이렇게 해도 되냐
+--안된다 개수가 달라도 안된다
+
+--테이블에 NULL데이터 입력하기
+--NULL의 명시적 입력
+INSERT INTO DEPT_TEMP
+    VALUES(70, 'DATABASE', NULL);
+--    VALUES(70, 'DATABASE', '');도 가능한데 위에거 선호
+SELECT * FROM DEPT_TEMP;
+
+/*
+날짜 데이터 입력하기
+INSERT 문으로 날짜 데이터 입력하기 (날짜 사이에/입력)
+*/
+INSERT INTO EMP_TEMP(EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+    VALUES (9999, '홍길동', 'PRESIDENT', NULL, '2001-01-01', 5000, 1000, 10);
+    
+SELECT * FROM EMP_TEMP;
+
+--TO_DATE함수를 사용하여 날짜 데이터 입력
+--SYSDATE 함수 사용
+
+--한 번에 여러 데이터 추가
+--서브쿼리로 여러 데이터 추가하기
+INSERT IMTO EMP_TEMP(ENPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+    SELECT E.EMPMO, E.ENAME, E.JOB, E.MGR, E.HIREDATE, E.SAL, E.COMM, E.DEPTNO
+    FROM EMP E, SALGRADE S
+WHERE E.SAL BETWEEN S.LOSAL AND S.HISAL
+    AND S.GRADE = 1;
+
+SELECT * FROM EMP_TEMP;
+/*
+INSERT 문에서 서브쿼리 사용할 떄 유의할 점
+VALUES절은 사용하지 않는다
+*/
+
+
+--데이터 수정하기 UPDATE
+--DEPT 테이블을 복사해서 DEPT_TEMP2 테이블 만들기
+CREATE TABLE DEPT_TEMP2
+AS SELECT * FROM DEPT;
+
+SELECT * FROM DEPT_TEMP2;
+
+/*
+UPDATE문의 기본 사용법
+UPDATE [변경할 테이블]
+SET [변경할 열1]=[데이터],[변경할 열2]=[데이터],
+[WHERE 데이터를 변경할 대상 행을 선별하기 위한 조건];
+*/
+--테이블 데이터 중 일부분만 수정하기
+UPDATE DEPT_TEMP2
+    SET DNAME = 'DATABASE',
+    LOC = 'SEOUL'
+WHERE DEPTNO = 40;
+
+SELECT * FROM DEPT_TEMP2;
+
+--DEPT_TEMP2 테이블 업데이트
+UPDATE DEPT_TEMP2
+    SET LOC = 'SEOUL';
+
+SELECT * FROM DEPT_TEMP2;
+
+--수정한 내용을 되돌리고 싶을 때
+--ROLLBACK으로 테이블 내용을 이전 상태로 돌릭
+ROLLBACK;
+
+SELECT * FROM DEPT_TEMP2;
+
+DROP TABLE EMP_TEMP;
+
+SELECT * FROM EMP_TEMP;
+
+CREATE TABLE EMP_TEMP 
+AS SELECT * FROM EMP; 
+
+
+--EMP_TEMP 테이블의 사원들 중에서 급여가 2500 이하인 사원만 
+--추가 수당을 50 수정하는 다음 코드를 테워라
+UPDATE EMP_TEMP
+SET COMM = 50
+WHERE SAL<=2500;
+
+SELECT * FROM EMP_TEMP;
+
+--서브쿼리를 사용하여 데이터 수정하기
+--40번 부서의 부서 이름과 지역을 서브쿼리를 사용하여 수정
+--서브쿼리로 데이터 일부분 수정하기
+UPDATE DEPT_TEMP2
+    SET(DNAME, LOC) = (SELECT DNAME, LOC
+                        FROM DEPT
+                        WHERE DEPTNO = 40)
+WHERE DEPTNO = 40;
+
+SELECT * FROM DEPT_TEMP2;
+
+--UPDATE문의 WHERE 절에 서브쿼리 사용하기
+UPDATE DEPT_TEMP2;
+    SET LOC = 'SEOUL'
+    WHERE DEPTNO = (SELECT DEPTNO
+                        FROM DEPT_TEMP2
+                        WHERE DNAME = 'OPERATIONS'); 
+SELECT * FROM DEPT_TEMP2;
+
+--UPDATE문과 다로 다음에 소개할 DELETE문은 위험성이 큰 명령어
+
+
+/*
+데이터 삭제하기
+EMP 테이블을 복사하여 EMP_TEMP2 만들기
+*/
+CREATE TABLE EMP_TEMP2
+    AS SELECT * FROM EMP;
+    
+SELECT * FROM EMP_TEMP2;
+
+/*
+DELETE [FROM] [테이블 이름]
+[WHERE 삭제할 대상 행을 선별하기 위한 조건식];
+*/
+--WHERE절을 사용하여 데이터 삭제하기
+DELETE FROM EMP_TEMP2
+WHERE JOB = 'MANAGER';
+--행 삭제
+SELECT * FROM EMP_TEMP2;
+
+--WHERE 절에 서브쿼리를 사용하여 데이터 일부만 삭제하기
+DELETE FROM EMP_TEMP2
+WHERE EMPNO IN (SELECT E.EMPNO
+                FROM EMP_TEMP2 E, SALGRADE S
+                WHERE E.SAL BETWEEN S.LOSAL AND S.HISAL
+                AND S.GRADE = 3
+                AND DEPTNO = 30);
+                
+SELECT * FROM EMP_TEMP2;
+
+--EMP_TEMP 테이블에서 급여가 3000이상인 사원을 삭제하는 다음 코드를 채워라
+DELETE FROM EMP_TEMP
+WHERE SAL>=3000;
+
+DELETE FROM EMP_TEMP
+WHERE EMPNO IN (SELECT EMPNO 
+                FROM EMP_TEMP 
+                WHERE SAL >= 3000); 
+--위랑 같은거일듯
+
+SELECT * FROM EMP_TEMP2;
+
+--데이터 전체 삭제하기 - 모든 데이터가 삭제됨
+
+DELETE FROM EMP_TEMP;
+DELETE FROM EMP_TEMP2;
+DELETE FROM DEPT_TEMP;
+DELETE FROM DEPT2_TEMP2;
+
+SELECT * FROM EMP_TEMP;
+SELECT * FROM EMP_TEMP2;
+SELECT * FROM DEPT_TEMP;
+SELECT * FROM DEPT2_TEMP2;
+
+ROLLBACK;
+
+/*
+트랜잭션 제어 COMMIT ROLLBACK
+1 하나의 단위로 데이터를 처리하는 트랜잭션
+2 트랜잭션을 제어하는 명령어
+
+트랜잭션이란?
+더 이상 분할할 수 없는 최소 수행 단위
+여러 명령어를 한 번에 수행하여 작업을 완료하거나 아예 모두 수행하지 않는 상태
+*/
+
+/*
+세션이란?
+데이터베이스 접속을 시작으로 여러 데이터베이스에서
+관련 작업을 수행한 후 접속을 종료하기까지 전체 기간을 의미
+*하나의 세션 안에는 여러 개의 트랜잭션이 존재한다
+*/
+/*
+읽기 일관성
+특정 세션에서 테이블에 데이터를 변경 중일 때 그 외 다른 세션에서는
+현재 진행 중인 변경과 무관한 본래의 데이터를 보여주는 특성을 의미
+*/
+
+CREATE TABLE DEPT_TCL
+AS SELECT * FROM DEPT;
+
+SELECT * FROM DEPT_TCL;
+
+/*
+CMD 창에서 SCOTT으로 하나 더 로그인
+SELECT * FROM DEPT_TCL;
+여기로 접속
+*/
+DELETE DEPT_TCL
+WHERE DEPTNO = 50;
+SELECT * FROM DEPT_TCL;
+--50번 원래 없데
+COMMIT;
+
+INSERT INTO DEPT_TCL 
+VALUES (50, 'RESOURCES', 'SEOUL'); 
+
+SELECT * FROM DEPT_TCL;
+
+DELETE DEPT_TCL
+WHERE DEPTNO = 50;
+
+SELECT * FROM DEPT_TCL;
+
+/*
+여기서 CMD로 가서
+SELECT * FROM DEPT_TCL;
+해보면 값이 다르게 나온데
+*/
+
+COMMIT;
+
+/*
+커밋하고 CMD 보면 값이 바뀌어서 나온데
+커밋해서 값이 저장된데
+트랜잭션 저장시킨데
+*/
+
+/*
+LOCK 이란?
+트랜잭션이 완료(커밋, 롤백)되기 전까지
+다른세션에서 
+
+*/
+
+SELECT * FROM DEPT_TCL;
+
+UPDATE DEPT_TCL SET LOC = 'SEOUL'
+WHERE DEPTNO = 30;
+
+SELECT * FROM DEPT_TCL;
+
+/*
+CMD에서 
+UPDATE DEPT_TCL SET DNAME = 'DATABASE'
+WHERE DEPTNO = 30;
+근데 업데이트 할 수 없어
+왜나면 여기서 업데이트 끝낸게 아니라 변경중이기때문에
+트랜잭션이 계속 유지되고 있기 때문에
+CMD 에서 접근을 할 수 없어
+여기서 끝날때까지
+커밋 할때까지
+*/
+
+COMMIT;
+/*
+커밋 하면 CMD에서 자동으로 실행됫다고 나옴
+그리고 CMD에서 커밋 해야
+여기서 바뀐 정도 업데이트 된다
+*/
+
